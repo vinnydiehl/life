@@ -62,17 +62,6 @@ class Cell
       end
     end.flatten(1).reject { |coord| coord == [x, y] }
   end
-
-  def mark
-    @marked = true
-  end
-
-  def sweep
-    if @marked
-      toggle
-      @marked = false
-    end
-  end
 end
 
 class ConwaysGameOfLife
@@ -160,18 +149,20 @@ class ConwaysGameOfLife
   end
 
   def advance_generation
+    marked_cells = []
+
     @cells.each do |column|
       column.each do |cell|
         living_neighbors = cell.neighbors.select do |x, y|
           x >= 0 && x <= @grid_width - 1 && y >= 0 && y <= @grid_height - 1 && @cells[x][y].alive?
         end.size
 
-        cell.mark if (cell.alive? && (living_neighbors < 2 || living_neighbors > 3)) ||
-                     (cell.dead? && living_neighbors == 3)
+        marked_cells << cell if (cell.alive? && (living_neighbors < 2 || living_neighbors > 3)) ||
+                                (cell.dead? && living_neighbors == 3)
       end
     end
 
-    @cells.flatten.each(&:sweep)
+    marked_cells.each(&:toggle)
   end
 end
 
