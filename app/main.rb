@@ -29,16 +29,6 @@ class Cell
     [x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE]
   end
 
-  # Sets the cell state to alive.
-  def set_alive
-    @alive = true
-  end
-
-  # Sets the cell state to dead.
-  def set_dead
-    @alive = false
-  end
-
   # Sets the cell to dead if it is alive, or to alive if it is dead.
   def toggle
     @alive = !@alive
