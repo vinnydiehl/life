@@ -1,6 +1,6 @@
 CELL_SIZE = 10
 LINE_COLOR = { r: 220, g: 220, b: 220 }.freeze
-GENERATION_TIME = 30
+GENERATION_TIME = 2
 
 class Cell
   attr_accessor :toggleable
@@ -26,7 +26,7 @@ class Cell
 
   # @return [Array<Integer>] the rectangle the cell occupies on the screen
   def rect
-    [x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE]
+    [x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE].solid
   end
 
   # Sets the cell to dead if it is alive, or to alive if it is dead.
@@ -57,7 +57,7 @@ end
 class ConwaysGameOfLife
   def initialize(args)
     @args = args
-    @solids = args.outputs.solids
+    @primitives = args.outputs.primitives
     @static_borders = args.outputs.static_borders
     @static_lines = args.outputs.static_lines
     @mouse = args.inputs.mouse
@@ -92,10 +92,13 @@ class ConwaysGameOfLife
         if cell.toggleable
           cell.toggle
           cell.toggleable = false
+          create_render_target
         end
       end
     elsif @mouse.up
-      @cells.flatten.each { |cell| cell.toggleable = true }
+      @cells.each do |column|
+        column.each { |cell| cell.toggleable = true }
+      end
     end
   end
 
@@ -132,11 +135,7 @@ class ConwaysGameOfLife
   end
 
   def render_cells
-    @cells.each do |column|
-      column.each do |cell|
-        @solids << cell.rect if cell.alive?
-      end
-    end
+    @primitives << { x: 0, y: 0, w: @screen_width, h: @screen_height, path: :cells }
   end
 
   def advance_generation
@@ -154,6 +153,22 @@ class ConwaysGameOfLife
     end
 
     marked_cells.each(&:toggle)
+
+    create_render_target
+  end
+
+  def create_render_target
+    cells_render_target = @args.render_target(:cells).tap do |t|
+      t.clear_before_render = true
+      t.width = @screen_width
+      t.height = @screen_height
+    end.primitives
+
+    @cells.each do |column|
+      column.each do |cell|
+        cells_render_target << cell.rect if cell.alive?
+      end
+    end
   end
 end
 
