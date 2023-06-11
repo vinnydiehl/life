@@ -88,6 +88,9 @@ class ConwaysGameOfLife
   end
 
   def render_grid
+    # Outline
+    @borders << { x: 0, y: 0, w: @screen_width, h: @screen_height, **LINE_COLOR }
+
     # Verticals
     (1..@grid_width - 1).each do |x_i|
       x = x_i * CELL_SIZE
