@@ -1,5 +1,6 @@
 CELL_SIZE = 10
 LINE_COLOR = { r: 220, g: 220, b: 220 }.freeze
+GENERATION_TIME = 60
 
 class Cell
   attr_reader :state, :position
@@ -50,14 +51,36 @@ class Cell
   def alive?
     @alive
   end
+
+  # @return [Array<Array<Integer>>] a list of the coordinates of the 8 neighboring cells
+  def neighbors
+    (-1..1).map do |x_offset|
+      (-1..1).map do |y_offset|
+        [x + x_offset, y + y_offset]
+      end
+    end.flatten(1).reject { |coord| coord == [x, y] }
+  end
+
+  def mark
+    @marked = true
+  end
+
+  def sweep
+    if @marked
+      toggle
+      @marked = false
+    end
+  end
 end
 
 class ConwaysGameOfLife
   def initialize(args)
     @args = args
     @solids = args.outputs.solids
+    @borders = args.outputs.borders
     @lines = args.outputs.lines
     @mouse = args.inputs.mouse
+    @kb = args.inputs.keyboard.key_down
 
     @screen_width = args.grid.w
     @screen_height = args.grid.h
@@ -66,12 +89,15 @@ class ConwaysGameOfLife
     @grid_height = @screen_height / CELL_SIZE
 
     @running = false
+    @frames = 0
 
     @cells = Array.new(@grid_width) { |x| Array.new(@grid_height) { |y| Cell.new(x, y) } }
   end
 
   def tick
     handle_mouse_click
+    handle_keyboard_input
+    handle_timer if @running
     render
   end
 
@@ -80,6 +106,17 @@ class ConwaysGameOfLife
 
     x, y = [click.point.x, click.point.y].map { |n| n / CELL_SIZE }
     @cells[x][y].toggle
+  end
+
+  def handle_keyboard_input
+    if @kb.space
+      @running ? stop : start
+    end
+  end
+
+  def handle_timer
+    @frames += 1
+    advance_generation if @frames % GENERATION_TIME == 0
   end
 
   def render
@@ -118,6 +155,21 @@ class ConwaysGameOfLife
 
   def stop
     @running = false
+  end
+
+  def advance_generation
+    @cells.each do |column|
+      column.each do |cell|
+        living_neighbors = cell.neighbors.select do |x, y|
+          x >= 0 && x <= @grid_width - 1 && y >= 0 && y <= @grid_height - 1 && @cells[x][y].alive?
+        end.size
+
+        cell.mark if (cell.alive? && (living_neighbors < 2 || living_neighbors > 3)) ||
+                     (cell.dead? && living_neighbors == 3)
+      end
+    end
+
+    @cells.flatten.each(&:sweep)
   end
 end
 

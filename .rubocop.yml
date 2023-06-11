@@ -47,6 +47,9 @@ Style/HashSyntax:
 Style/IfUnlessModifier:
   Enabled: false
 
+Style/MultilineBlockChain:
+  Enabled: false
+
 Style/MultilineTernaryOperator:
   Enabled: false
 
