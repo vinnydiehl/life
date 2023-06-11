@@ -1,8 +1,9 @@
 CELL_SIZE = 10
 LINE_COLOR = { r: 220, g: 220, b: 220 }.freeze
-GENERATION_TIME = 60
+GENERATION_TIME = 20
 
 class Cell
+  attr_accessor :toggleable
   attr_reader :state, :position
 
   # @param x [Integer] x-coordinate on the grid
@@ -10,6 +11,7 @@ class Cell
   def initialize(x, y)
     @alive = nil
     @position = [x, y]
+    @toggleable = true
   end
 
   # The X position of the cell
@@ -95,22 +97,30 @@ class ConwaysGameOfLife
   end
 
   def tick
-    handle_mouse_click
+    handle_mouse
     handle_keyboard_input
     handle_timer if @running
     render
   end
 
-  def handle_mouse_click
-    return unless (click = @mouse.click)
+  def handle_mouse
+    if @mouse.held
+      x, y = [@mouse.position.x, @mouse.position.y].map { |n| n / CELL_SIZE }
 
-    x, y = [click.point.x, click.point.y].map { |n| n / CELL_SIZE }
-    @cells[x][y].toggle
+      @cells[x][y].tap do |cell|
+        if cell.toggleable
+          cell.toggle
+          cell.toggleable = false
+        end
+      end
+    elsif @mouse.up
+      @cells.flatten.each { |cell| cell.toggleable = true }
+    end
   end
 
   def handle_keyboard_input
     if @kb.space
-      @running ? stop : start
+      @running = !@running
     end
   end
 
@@ -149,14 +159,6 @@ class ConwaysGameOfLife
     end
   end
 
-  def start
-    @running = true
-  end
-
-  def stop
-    @running = false
-  end
-
   def advance_generation
     @cells.each do |column|
       column.each do |cell|
@@ -177,5 +179,3 @@ def tick(args)
   args.state.game ||= ConwaysGameOfLife.new(args)
   args.state.game.tick
 end
-
-$gtk.reset
