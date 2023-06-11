@@ -1,0 +1,3 @@
+CELL_SIZE = 10
+LINE_COLOR = { r: 220, g: 220, b: 220 }.freeze
+GENERATION_TIME = 2
