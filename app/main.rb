@@ -1,6 +1,6 @@
 CELL_SIZE = 10
 LINE_COLOR = { r: 220, g: 220, b: 220 }.freeze
-GENERATION_TIME = 2
+GENERATION_TIME = 30
 
 class Cell
   attr_accessor :toggleable
