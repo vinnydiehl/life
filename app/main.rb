@@ -1,5 +1,5 @@
 CELL_SIZE = 10
-LINE_COLOR = { r: 220, g: 220, b: 220 }
+LINE_COLOR = { r: 220, g: 220, b: 220 }.freeze
 
 class Cell
   attr_reader :state, :position
@@ -76,7 +76,8 @@ class ConwaysGameOfLife
   end
 
   def handle_mouse_click
-    return unless click = @mouse.click
+    return unless (click = @mouse.click)
+
     x, y = [click.point.x, click.point.y].map { |n| n / CELL_SIZE }
     @cells[x][y].toggle
   end
@@ -94,7 +95,7 @@ class ConwaysGameOfLife
     end
 
     # Horizontals
-    (1..@grid_width - 1).each do |y_i|
+    (1..@grid_height - 1).each do |y_i|
       y = y_i * CELL_SIZE
       @lines << { x: 0, x2: @screen_width, y: y, y2: y, **LINE_COLOR }
     end
